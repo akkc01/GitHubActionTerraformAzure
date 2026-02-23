@@ -6,8 +6,37 @@ on:
       - main
 
 jobs:
+  scanning:
+    name: 'Terraform Linting'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Terraform fmt
+        run: terraform fmt -check
+      - name: tfsec installation
+        run: |
+          wget https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64
+          chmod +x tfsec-linux-amd64
+          sudo mv tfsec-linux-amd64 /usr/local/bin/tfsec
+
+      - name: tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          soft_fail: true
+
+       # Add more linting steps as needed (e.g., terraform validate, tflint, etc.)
+
   terraform:
     name: 'Terraform Plan and Apply'
+    needs: scanning
     runs-on: ubuntu-latest
 
     env:
