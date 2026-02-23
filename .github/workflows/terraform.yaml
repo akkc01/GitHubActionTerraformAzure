@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  scanning:
+  scanning_tfsec:
     name: 'Terraform Linting'
     runs-on: ubuntu-latest
 
@@ -32,7 +32,32 @@ jobs:
         with:
           soft_fail: true
 
-       # Add more linting steps as needed (e.g., terraform validate, tflint, etc.)
+  sonarqube:
+    name: 'SonarQube Analysis'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Disabling shallow clone is recommended for improving relevancy of reporting.
+          fetch-depth: 0
+
+      # Triggering SonarQube analysis as results of it are required by Quality Gate check.
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      # Check the Quality Gate status.
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        with:
+          pollingTimeoutSec: 600
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} #OPTIONAL
+
 
   terraform:
     name: 'Terraform Plan and Apply'
