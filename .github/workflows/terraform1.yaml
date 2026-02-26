@@ -48,7 +48,6 @@ jobs:
       - name: Show Report Content
         run: cat tflint-report.xml
 
-
   tfsec:
     name: Terraform Security Check
     runs-on: ubuntu-latest
@@ -67,9 +66,7 @@ jobs:
           terraform_version: 1.8.0
 
       - name: Setup tfsec
-        uses: aquasecurity/tfsec-action@v1
-        with:
-          tfsec_version: v1.28.0
+        uses: aquasecurity/tfsec-action@v1.0.0
 
       - name: Run tfsec
         run: tfsec --format=checkstyle > tfsec-report.xml
