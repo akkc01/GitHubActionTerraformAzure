@@ -47,3 +47,38 @@ jobs:
           
       - name: Show Report Content
         run: cat tflint-report.xml
+
+
+  tfsec:
+    name: Terraform Security Check
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Setup tfsec
+        uses: aquasecurity/tfsec-action@v1
+        with:
+          tfsec_version: v1.28.0
+
+      - name: Run tfsec
+        run: tfsec --format=checkstyle > tfsec-report.xml
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfsec-report
+          path: tfsec-report.xml
+
+      - name: Show Report Content
+        run: cat tfsec-report.xml
