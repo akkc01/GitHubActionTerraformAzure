@@ -37,10 +37,13 @@ jobs:
         run: tflint -f compact
 
       - name: Run TFLint
-        run: tflint --format=checkstyle > tflint-report.html
-        
+        run: tflint --format=checkstyle > tflint-report.xml
+
       - name: Upload Report
         uses: actions/upload-artifact@v4
         with:
           name: tflint-report
-          path: tflint-report.html
+          path: tflint-report.xml
+          
+      - name: Show Report Content
+        run: cat tflint-report.xml
