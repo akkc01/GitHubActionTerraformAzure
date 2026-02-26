@@ -65,11 +65,15 @@ jobs:
         with:
           terraform_version: 1.8.0
 
-      - name: Setup tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
-
       - name: Run tfsec
-        run: tfsec --format=checkstyle > tfsec-report.xml
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          format: checkstyle
+          additional_args: --out=tfsec-report.xml
+          soft_fail: false
+
+      # - name: export tfsec
+      #   run: tfsec --format=checkstyle > tfsec-report.xml
 
       - name: Upload Report
         uses: actions/upload-artifact@v4
