@@ -1,100 +1,100 @@
-name: Terraform Azure Deployment
+# name: Terraform Azure Deployment
 
-on:
-  push:
-    branches:
-      - main
+# on:
+#   push:
+#     branches:
+#       - main
 
-jobs:
-  scanning_tfsec:
-    name: 'Terraform Linting'
-    runs-on: ubuntu-latest
+# jobs:
+#   scanning_tfsec:
+#     name: 'Terraform Linting'
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.8.0
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.8.0
 
-      - name: Terraform fmt
-        run: terraform fmt -check
-      - name: tfsec installation
-        run: |
-          wget https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64
-          chmod +x tfsec-linux-amd64
-          sudo mv tfsec-linux-amd64 /usr/local/bin/tfsec
+#       - name: Terraform fmt
+#         run: terraform fmt -check
+#       - name: tfsec installation
+#         run: |
+#           wget https://github.com/aquasecurity/tfsec/releases/latest/download/tfsec-linux-amd64
+#           chmod +x tfsec-linux-amd64
+#           sudo mv tfsec-linux-amd64 /usr/local/bin/tfsec
 
-      - name: tfsec
-        uses: aquasecurity/tfsec-action@v1.0.0
-        with:
-          soft_fail: true
+#       - name: tfsec
+#         uses: aquasecurity/tfsec-action@v1.0.0
+#         with:
+#           soft_fail: true
 
-  sonarqube:
-    name: 'SonarQube Analysis'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # Disabling shallow clone is recommended for improving relevancy of reporting.
-          fetch-depth: 0
+#   sonarqube:
+#     name: 'SonarQube Analysis'
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#         with:
+#           # Disabling shallow clone is recommended for improving relevancy of reporting.
+#           fetch-depth: 0
 
-      # Triggering SonarQube analysis as results of it are required by Quality Gate check.
-      - name: SonarQube Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+#       # Triggering SonarQube analysis as results of it are required by Quality Gate check.
+#       - name: SonarQube Scan
+#         uses: sonarsource/sonarqube-scan-action@master
+#         env:
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-      # Check the Quality Gate status.
-      - name: SonarQube Quality Gate check
-        id: sonarqube-quality-gate-check
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        with:
-          pollingTimeoutSec: 600
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} #OPTIONAL
-
-
-  terraform:
-    name: 'Terraform Plan and Apply'
-    needs: scanning
-    runs-on: ubuntu-latest
-
-    env:
-      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    defaults:
-      run:
-        working-directory: env/dev
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.8.0
-
-      - name: Terraform Init
-        run: |
-          terraform init \
-            -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" \
-            -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
-            -backend-config="key=${{ secrets.TFSTATEFILE }}" \
-            -backend-config="resource_group_name=${{ secrets.RG_NAME }}"
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
+#       # Check the Quality Gate status.
+#       - name: SonarQube Quality Gate check
+#         id: sonarqube-quality-gate-check
+#         uses: sonarsource/sonarqube-quality-gate-action@master
+#         with:
+#           pollingTimeoutSec: 600
+#         env:
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} #OPTIONAL
 
 
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve tfplan
+#   terraform:
+#     name: 'Terraform Plan and Apply'
+#     needs: scanning
+#     runs-on: ubuntu-latest
+
+#     env:
+#       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+#       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+#       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+#       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+#     defaults:
+#       run:
+#         working-directory: env/dev
+
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
+
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v3
+#         with:
+#           terraform_version: 1.8.0
+
+#       - name: Terraform Init
+#         run: |
+#           terraform init \
+#             -backend-config="storage_account_name=${{ secrets.STORAGE_ACCOUNT_NAME }}" \
+#             -backend-config="container_name=${{ secrets.CONTAINER_NAME }}" \
+#             -backend-config="key=${{ secrets.TFSTATEFILE }}" \
+#             -backend-config="resource_group_name=${{ secrets.RG_NAME }}"
+
+#       - name: Terraform Plan
+#         run: terraform plan -out=tfplan
+
+
+#       - name: Terraform Apply
+#         if: github.ref == 'refs/heads/main'
+#         run: terraform apply -auto-approve tfplan
