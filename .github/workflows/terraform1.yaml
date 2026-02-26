@@ -7,7 +7,6 @@ on:
       - features/*
   pull_request:
 
-
 jobs:
   lint:
     name: Terraform Linting
@@ -25,7 +24,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.8.0
-        # jsugifjjhgo
+
       - name: Terraform Init
         run: terraform init -backend=false
 
