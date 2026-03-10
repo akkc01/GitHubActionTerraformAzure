@@ -1,5 +1,5 @@
 # Terraform code deployment
 
-# Azure Cloud
+# on Azure Cloud
 
 # Using GitHub Actions
